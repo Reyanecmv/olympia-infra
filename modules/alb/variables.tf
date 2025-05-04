@@ -1,3 +1,5 @@
+# modules/alb/variables.tf - Add these new variables
+
 variable "name_prefix" {
   description = "Prefix for resource names"
   type        = string
@@ -31,4 +33,17 @@ variable "container_port" {
 variable "domain_name" {
   description = "Domain name for the application"
   type        = string
+}
+
+# Add these new variables for cost optimization
+variable "enable_logs" {
+  description = "Enable access logs for ALB"
+  type        = bool
+  default     = false
+}
+
+variable "enable_waf" {
+  description = "Enable WAF for ALB"
+  type        = bool
+  default     = false
 }

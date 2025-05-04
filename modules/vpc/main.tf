@@ -66,7 +66,7 @@ resource "aws_route_table_association" "public" {
 resource "aws_eip" "nat" {
   count = var.enable_nat_gateway ? (var.single_nat_gateway ? 1 : length(var.azs)) : 0
 
-  domain = "vpc"
+  vpc = true
 
   tags = {
     Name = "${var.name}-nat-eip-${count.index + 1}"
@@ -200,6 +200,54 @@ resource "aws_vpc_endpoint_route_table_association" "public_s3" {
 
   route_table_id  = aws_route_table.public.id
   vpc_endpoint_id = aws_vpc_endpoint.s3[0].id
+}
+
+# Add to modules/vpc/main.tf
+resource "aws_vpc_endpoint" "ecr_api" {
+  count = var.enable_ecr_endpoint ? 1 : 0
+
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints[0].id]
+  private_dns_enabled = true
+}
+
+resource "aws_vpc_endpoint" "ecr_dkr" {
+  count = var.enable_ecr_endpoint ? 1 : 0
+
+  vpc_id            = aws_vpc.this.id
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids          = aws_subnet.private[*].id
+  security_group_ids  = [aws_security_group.vpc_endpoints[0].id]
+  private_dns_enabled = true
+}
+
+resource "aws_security_group" "vpc_endpoints" {
+  count = var.enable_ecr_endpoint ? 1 : 0
+
+  name        = "${var.name}-vpc-endpoints-sg"
+  description = "Allow HTTPS for VPC endpoints"
+  vpc_id      = aws_vpc.this.id
+
+  ingress {
+    description = "HTTPS from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.cidr]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 data "aws_region" "current" {}

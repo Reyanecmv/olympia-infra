@@ -51,8 +51,8 @@ resource "aws_db_instance" "postgres" {
   engine                 = "postgres"
   engine_version         = "14.7"
   instance_class         = var.instance_class
-  allocated_storage      = 20
-  max_allocated_storage  = 100
+  allocated_storage      = 10  # Changed from 20
+  max_allocated_storage  = 50  # Changed from 100
   storage_type           = "gp3"
   storage_encrypted      = true
 
@@ -68,20 +68,20 @@ resource "aws_db_instance" "postgres" {
   backup_window           = "03:00-04:00"
   maintenance_window      = "Mon:04:00-Mon:05:00"
 
-  skip_final_snapshot     = false
+  skip_final_snapshot     = true  # Changed from false to avoid extra snapshot costs
   final_snapshot_identifier = "${var.name_prefix}-postgres-final-snapshot"
-  deletion_protection     = true
+  deletion_protection     = false  # Changed from true for development environments
 
-  performance_insights_enabled          = true
-  performance_insights_retention_period = 7
+  performance_insights_enabled          = false  # Changed from true
+  performance_insights_retention_period = 0      # Changed from 7
 
-  monitoring_interval    = 60
+  monitoring_interval    = 0  # Changed from 60
   monitoring_role_arn    = aws_iam_role.rds_monitoring_role.arn
 
-  enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
+  enabled_cloudwatch_logs_exports = []  # Changed from ["postgresql", "upgrade"]
 
-  # Only enable Multi-AZ for production
-  multi_az = true
+  # Disable Multi-AZ for cost savings
+  multi_az = false  # Changed from true
 }
 
 resource "aws_iam_role" "rds_monitoring_role" {

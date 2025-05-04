@@ -1,54 +1,29 @@
-variable "name" {
-  description = "Name of the VPC"
-  type        = string
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = aws_vpc.this.id
 }
 
-variable "cidr" {
-  description = "CIDR block for VPC"
-  type        = string
+output "private_subnets" {
+  description = "List of IDs of private subnets"
+  value       = aws_subnet.private[*].id
 }
 
-variable "azs" {
-  description = "List of availability zones"
-  type        = list(string)
+output "public_subnets" {
+  description = "List of IDs of public subnets"
+  value       = aws_subnet.public[*].id
 }
 
-variable "private_subnets" {
-  description = "List of private subnet CIDR blocks"
-  type        = list(string)
+output "nat_gateway_ids" {
+  description = "List of NAT Gateway IDs"
+  value       = aws_nat_gateway.this[*].id
 }
 
-variable "public_subnets" {
-  description = "List of public subnet CIDR blocks"
-  type        = list(string)
+output "route_table_ids" {
+  description = "List of route table IDs"
+  value       = concat([aws_route_table.public.id], aws_route_table.private[*].id)
 }
 
-variable "enable_nat_gateway" {
-  description = "Enable NAT gateway"
-  type        = bool
-  default     = true
-}
-
-variable "single_nat_gateway" {
-  description = "Use a single NAT gateway"
-  type        = bool
-  default     = true
-}
-
-variable "enable_vpn_gateway" {
-  description = "Enable VPN gateway"
-  type        = bool
-  default     = false
-}
-
-variable "enable_dns_hostnames" {
-  description = "Enable DNS hostnames"
-  type        = bool
-  default     = true
-}
-
-variable "enable_dns_support" {
-  description = "Enable DNS support"
-  type        = bool
-  default     = true
+output "igw_id" {
+  description = "The ID of the Internet Gateway"
+  value       = aws_internet_gateway.this.id
 }

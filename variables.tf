@@ -54,7 +54,7 @@ variable "db_username" {
 variable "db_instance_class" {
   description = "Instance class for the database"
   type        = string
-  default     = "db.t3.small"
+  default     = "db.t3.micro"
 }
 
 variable "container_port" {
@@ -66,19 +66,19 @@ variable "container_port" {
 variable "container_cpu" {
   description = "CPU units for the container"
   type        = number
-  default     = 1024 # 1 vCPU
+  default     = 256 # 1 vCPU
 }
 
 variable "container_memory" {
   description = "Memory for the container"
   type        = number
-  default     = 2048 # 2 GB
+  default     = 512 # 2 GB
 }
 
 variable "app_count" {
   description = "Number of containers to run"
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "app_domain" {

@@ -1,12 +1,25 @@
+# provider "aws" {
+#   region = var.aws_region
+#
+#   default_tags {
+#     tags = var.default_tags
+#   }
+# }
+
 provider "aws" {
   region = var.aws_region
+
+  # Add these lines for testing without real AWS credentials
+  skip_credentials_validation = true
+  skip_requesting_account_id = true
+  skip_metadata_api_check     = true
+  access_key                  = "mock_access_key"
+  secret_key                  = "mock_secret_key"
 
   default_tags {
     tags = var.default_tags
   }
 }
-
-provider "random" {}
 
 # Random string for unique naming
 resource "random_string" "suffix" {
@@ -14,6 +27,8 @@ resource "random_string" "suffix" {
   special = false
   upper   = false
 }
+
+# 1. Update main.tf - VPC Module
 
 module "vpc" {
   source = "./modules/vpc"
@@ -23,14 +38,14 @@ module "vpc" {
   azs                 = var.availability_zones
   private_subnets     = local.private_subnets
   public_subnets      = local.public_subnets
-  enable_nat_gateway  = true
-  single_nat_gateway  = true
+  enable_nat_gateway  = false  # Changed from true - disable NAT Gateway to save costs
+  single_nat_gateway  = false  # Changed from true
   enable_vpn_gateway  = false
   enable_dns_hostnames = true
   enable_dns_support  = true
-  enable_flow_log     = true
-  flow_log_max_aggregation_interval = 60
-  enable_s3_endpoint  = true
+  enable_flow_log     = false  # Changed from true - disable flow logs to save cost
+  enable_s3_endpoint  = true   # Keep S3 endpoint for access without NAT
+  enable_ecr_endpoint = true   # Add ECR endpoint to allow ECS tasks to pull images without NAT
 }
 
 module "security_groups" {
@@ -94,11 +109,13 @@ module "ecs" {
 module "alb" {
   source = "./modules/alb"
 
-  name_prefix       = local.name_prefix
+  name_prefix       = "pm-${var.environment}"  # Shorter name
   vpc_id            = module.vpc.vpc_id
   public_subnets    = module.vpc.public_subnets
   security_group_id = module.security_groups.alb_sg_id
   target_group_arn  = module.ecs.target_group_arn
   container_port    = var.container_port
   domain_name       = var.app_domain
+  enable_logs       = false   # Disable ALB logs
+  enable_waf        = false   # Disable WAF
 }
